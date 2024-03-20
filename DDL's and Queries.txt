@@ -1,0 +1,161 @@
+###################DDL's ########################
+
+-- Create raw table
+CREATE TABLE raw (
+    measurement_id SERIAL PRIMARY KEY,
+    city_id INTEGER,
+    city_name VARCHAR(255),
+    longitude VARCHAR(255),
+    latitude VARCHAR(255),
+    weather_id INTEGER,
+    weather_main VARCHAR(255),
+    weather_description VARCHAR(255),
+    weather_icon VARCHAR(255),
+    base VARCHAR(255),
+    temperature FLOAT,
+    feels_like FLOAT,
+    temp_min FLOAT,
+    temp_max FLOAT,
+    pressure INTEGER,
+    humidity INTEGER,
+    visibility INTEGER,
+    wind_speed FLOAT,
+    wind_deg INTEGER,
+    clouds_all INTEGER,
+    dt TIMEZONE,
+    sys_type INTEGER,
+    sys_id INTEGER,
+    sys_country VARCHAR(255),
+    sys_sunrise TIMEZONE,
+    sys_sunset TIMEZONE,
+    timezone INTEGER,
+    cod VARCHAR(255)
+);
+
+-- Create city table
+CREATE TABLE city (
+    city_id INTEGER PRIMARY KEY,
+    city_name VARCHAR(255),
+    longitude VARCHAR(255),
+    latitude VARCHAR(255)
+);
+
+-- Create weather table
+CREATE TABLE weather (
+    weather_id INTEGER PRIMARY KEY,
+    weather_main VARCHAR(255),
+    weather_description VARCHAR(255),
+    weather_icon VARCHAR(255)
+);
+
+-- Create measurement table
+CREATE TABLE measurement (
+    measurement_id INTEGER PRIMARY KEY,
+    city_id INTEGER,
+    weather_id INTEGER,
+    temperature FLOAT,
+    temp_min FLOAT,
+    temp_max FLOAT,
+    wind_speed FLOAT,
+    dt TIMEZONE,
+    sys_country VARCHAR(255),
+    sys_sunrise TIMEZONE,
+    sys_sunset TIMEZONE,
+    timezone INTEGER,
+    FOREIGN KEY (city_id) REFERENCES city(city_id),
+    FOREIGN KEY (weather_id) REFERENCES weather(weather_id)
+);
+
+################### SQL QUERIES ########################
+
+2.1 Distinct values of conditions (rain/snow/clear/…) for a given period.
+
+SELECT DISTINCT w.weather_main
+FROM (          
+		SELECT *
+		FROM measurement
+		WHERE dt BETWEEN '2024-03-18 10:10:10' AND '2024-03-26 10:10:10'
+	  ) m
+JOIN weather w ON m.weather_id = w.weather_id
+WHERE m.dt BETWEEN '2024-03-18 10:10:10' AND '2024-03-26 10:10:10';
+
+2.2 Most common weather conditions in a certain period of time per city;
+2.2.1
+
+SELECT m.city_id, c.city_name, w.weather_main, COUNT(*) AS frequency
+FROM (          
+        SELECT *
+        FROM measurement
+        WHERE dt BETWEEN '2024-03-18 10:10:10' AND '2024-03-26 10:10:10'
+	  ) m
+JOIN city c ON m.city_id = c.city_id
+JOIN weather w ON m.weather_id = w.weather_id
+GROUP BY m.city_id, c.city_name, w.weather_main
+ORDER BY frequency DESC;
+
+2.2.2
+
+SELECT m.city_id, c.city_name, w.weather_main, COUNT(*) AS frequency
+FROM (          
+        SELECT *
+		FROM measurement
+		WHERE dt BETWEEN '2024-03-18 10:10:10' AND '2024-03-26 10:10:10'
+	  ) m
+JOIN city c ON m.city_id = c.city_id
+JOIN weather w ON m.weather_id = w.weather_id
+GROUP BY m.city_id, c.city_name, w.weather_main
+ORDER BY frequency DESC
+LIMIT 1;
+
+2.3 Temperature averages observed in a certain period per city;
+
+SELECT m.city_id, c.city_name, CAST(AVG(m.temperature) AS DECIMAL(10,2)) AS avg_temperature
+FROM (
+	  SELECT *
+	  FROM measurement
+	  WHERE dt BETWEEN '2024-03-18 10:10:10' AND '2024-03-26 10:10:10'
+	  ) m
+JOIN city c ON m.city_id = c.city_id
+GROUP BY m.city_id, c.city_name;
+
+2.4 City that had the highest absolute temperature in a certain period of time;
+
+SELECT m.city_id, c.city_name, CAST(MAX(m.temp_max) AS DECIMAL(10,2)) AS max_temperature
+FROM (
+      SELECT *
+      FROM measurement
+	  WHERE dt BETWEEN '2024-03-18 10:10:10' AND '2024-03-26 10:10:10'
+      ) m
+JOIN city c ON m.city_id = c.city_id
+GROUP BY m.city_id, c.city_name
+ORDER BY max_temperature DESC
+LIMIT 1;
+
+2.5 City that had the highest daily temperature variation in a certain period of time;
+
+SELECT m.measurement_id, m.city_id, c.city_name, 
+	   (MAX(m.temp_max) - MIN(m.temp_min)) AS temperature_variation
+FROM (
+	  SELECT *
+	  FROM measurement
+	  WHERE dt BETWEEN '2024-03-18 10:10:10' AND '2024-03-26 10:10:10'
+      ) m
+JOIN city c ON m.city_id = c.city_id
+WHERE m.dt BETWEEN m.sys_sunrise AND m.sys_sunset
+GROUP BY m.measurement_id, m.city_id, c.city_name
+ORDER BY temperature_variation DESC
+LIMIT 1;
+
+2.6 City that had the strongest wing in a certain period of time.
+
+SELECT m.measurement_id, m.city_id, c.city_name, 
+	   CAST(MAX(m.wind_speed) AS DECIMAL(10,2)) AS max_wind_speed
+FROM (
+	  SELECT *
+	  FROM measurement
+	  WHERE dt BETWEEN '2024-03-18 10:10:10' AND '2024-03-26 10:10:10'
+	  ) m
+JOIN city c ON m.city_id = c.city_id
+GROUP BY m.measurement_id, m.city_id, c.city_name
+ORDER BY max_wind_speed DESC
+LIMIT 1;
