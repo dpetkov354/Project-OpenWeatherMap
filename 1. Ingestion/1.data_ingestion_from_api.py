@@ -17,23 +17,6 @@ units = "metric"
 # Weather data for each city
 weather_data = {}
 
-#Unix time to timestamp to GMT+0200 (Eastern European Standard Time)
-def dt_to_timestamp(api_dt):
-
-    # Convert Unix timestamp to datetime object in UTC
-    utc_datetime = datetime.datetime.utcfromtimestamp(api_dt)
-
-    # Define timezone with offset (e.g., GMT+2)
-    timezone_offset = datetime.timedelta(hours=2)
-    timezone = pytz.FixedOffset(timezone_offset.total_seconds() // 60)
-
-    # Convert UTC datetime to local datetime with timezone offset
-    local_datetime = utc_datetime.replace(tzinfo=pytz.utc).astimezone(timezone)
-
-    # Format the local datetime object as a string
-    formatted_timestamp = local_datetime.strftime('%a %b %d %Y %H:%M:%S GMT%z')
-    return formatted_timestamp
-
 #Request function
 def get_weather_data(api_key, city, units):
     base_url = "http://api.openweathermap.org/data/2.5/weather"
