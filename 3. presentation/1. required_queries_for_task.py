@@ -35,7 +35,11 @@ properties = {
 # Define the SQL query
 query = """
             (SELECT DISTINCT w.weather_main
-            FROM measurement m
+            FROM (          
+                SELECT *
+                FROM measurement
+                WHERE dt BETWEEN '2024-03-18 10:10:10' AND '2024-03-26 10:10:10'
+                ) m
             JOIN weather w ON m.weather_id = w.weather_id
             WHERE m.dt BETWEEN '2024-03-18 10:10:10' AND '2024-03-26 10:10:10') AS subquery
         """
