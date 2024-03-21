@@ -29,7 +29,7 @@ display(raw_df)
 
 # COMMAND ----------
 
-# Read data from PostgreSQL city table
+# Read data from PostgreSQL measurement table
 measurement_df = spark.read.jdbc(url=jdbc_url, table="measurement", properties=properties)
 measurement_df = measurement_df.alias("measurement")
 display(measurement_df)

@@ -145,18 +145,29 @@ df.show()
 #2.5 City that had the highest daily temperature variation in a certain period of time;
 # The column measurement_id is not required, but it is useful for testing
 query = """
-            (SELECT m.measurement_id, m.city_id, c.city_name, 
-                                            (MAX(m.temp_max) - MIN(m.temp_min)) AS temperature_variation
-            FROM (
-                    SELECT *
-                    FROM measurement
-                    WHERE dt BETWEEN '2024-03-18 10:10:10' AND '2024-03-26 10:10:10'
-                ) m
-            JOIN city c ON m.city_id = c.city_id
-            WHERE m.dt BETWEEN m.sys_sunrise AND m.sys_sunset
-            GROUP BY m.measurement_id, m.city_id, c.city_name
-            ORDER BY temperature_variation DESC
-            LIMIT 1) as subquery
+        (WITH daily_variation_cte AS (
+                                    SELECT 
+                                        city_id, 
+                                        dt::date AS measurement_date,
+                                        MAX(temp_max) - MIN(temp_min) AS daily_variation
+                                    FROM 
+                                        measurement
+                                    WHERE 
+                                        dt::time >= sys_sunrise::time
+                                        AND dt::time <= sys_sunset::time
+                                        AND dt BETWEEN '2024-03-18 10:10:10' AND '2024-03-26 10:10:10'
+                                    GROUP BY 
+                                        city_id, 
+                                        dt::date
+                                )
+        SELECT 
+                dvc.city_id, 
+                c.city_name,
+                dvc.daily_variation 
+        FROM daily_variation_cte dvc
+        JOIN city c ON dvc.city_id = c.city_id
+        ORDER BY dvc.daily_variation DESC
+        LIMIT 1) as subquery
         """
 # Execute the query
 df = spark.read.jdbc(url=jdbc_url, table=query, properties=properties)

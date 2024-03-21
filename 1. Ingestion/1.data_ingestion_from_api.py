@@ -1,7 +1,5 @@
 # Databricks notebook source
 import requests
-import datetime
-import pytz
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType, LongType, TimestampType
 from datetime import datetime
 
@@ -136,6 +134,8 @@ for city in cities:
                  cod
                  )]
         
+        display(data)
+
         df = df = spark.createDataFrame(data, schema)
 
         df.write \
