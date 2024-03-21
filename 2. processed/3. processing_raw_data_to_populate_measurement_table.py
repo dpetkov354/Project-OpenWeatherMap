@@ -24,7 +24,7 @@ properties = {
 # Read data from PostgreSQL raw table
 raw_df = spark.read.jdbc(url=jdbc_url, table="raw", properties=properties)
 raw_df = raw_df.alias("raw")
-display(raw_df)
+# display(raw_df)
 
 
 # COMMAND ----------
@@ -32,7 +32,7 @@ display(raw_df)
 # Read data from PostgreSQL measurement table
 measurement_df = spark.read.jdbc(url=jdbc_url, table="measurement", properties=properties)
 measurement_df = measurement_df.alias("measurement")
-display(measurement_df)
+# display(measurement_df)
 
 # COMMAND ----------
 
@@ -42,7 +42,7 @@ new_rows_df = raw_df.join(measurement_df,
                              "left_outer") \
                    .filter(measurement_df.measurement_id.isNull())
 
-display(new_rows_df)
+# display(new_rows_df)
 
 
 # COMMAND ----------
@@ -61,7 +61,7 @@ new_distinct_rows_df = new_rows_df.select("raw.measurement_id",
                                           "raw.sys_sunset", 
                                           "raw.timezone") \
                                 .filter("measurement.measurement_id IS NULL")
-display(new_distinct_rows_df)
+# display(new_distinct_rows_df)
 
 # COMMAND ----------
 

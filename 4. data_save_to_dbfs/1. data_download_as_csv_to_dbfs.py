@@ -15,7 +15,6 @@ table_name = "temp_view"
 
 
 #1.Save the raw data to a csv in DBFS
-
 # Create a temporary view for the PostgreSQL table
 spark.read \
     .format("jdbc") \

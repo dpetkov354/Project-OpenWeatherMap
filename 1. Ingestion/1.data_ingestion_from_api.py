@@ -134,8 +134,6 @@ for city in cities:
                  cod
                  )]
         
-        display(data)
-
         df = df = spark.createDataFrame(data, schema)
 
         df.write \
@@ -153,12 +151,12 @@ for city in cities:
 
 # COMMAND ----------
 
-df = spark.read \
-    .format("jdbc") \
-    .option("url", jdbc_url) \
-    .option("dbtable", "raw") \
-    .option("user", properties["user"]) \
-    .option("password", properties["password"]) \
-    .option("driver", properties["driver"]) \
-    .load()
-display(df)
+# df = spark.read \
+#     .format("jdbc") \
+#     .option("url", jdbc_url) \
+#     .option("dbtable", "raw") \
+#     .option("user", properties["user"]) \
+#     .option("password", properties["password"]) \
+#     .option("driver", properties["driver"]) \
+#     .load()
+# display(df)
