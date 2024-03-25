@@ -57,15 +57,24 @@ df.show()
 #2.2 Most common weather conditions in a certain period of time per city;
 #Ranking as number of conditions is not defined. First filtering by date then joining to reduce data movement
 query = """
-          (SELECT m.city_id, c.city_name, w.weather_main, COUNT(*) AS frequency
-          FROM (          
-                SELECT *
-                FROM measurement
-                WHERE dt BETWEEN '2024-03-18 10:10:10' AND '2024-03-26 10:10:10') m
-          JOIN city c ON m.city_id = c.city_id
-          JOIN weather w ON m.weather_id = w.weather_id
-          GROUP BY m.city_id, c.city_name, w.weather_main
-          ORDER BY frequency DESC)  AS subquery
+          (WITH MeasurementCounts AS (
+                                          SELECT 
+                                          m.city_id, 
+                                          c.city_name, 
+                                          w.weather_main, 
+                                          COUNT(*) AS frequency,
+                                          ROW_NUMBER() OVER (PARTITION BY m.city_id ORDER BY COUNT(*) DESC
+                                          ) AS rank
+            FROM measurement m
+            JOIN city c ON m.city_id = c.city_id
+            JOIN weather w ON m.weather_id = w.weather_id
+            WHERE m.dt BETWEEN '2024-03-18 10:10:10' AND '2024-03-26 10:10:10'
+            GROUP BY m.city_id, c.city_name, w.weather_main
+            )
+            SELECT city_id, city_name, weather_main, frequency
+            FROM MeasurementCounts
+            WHERE rank = 1
+            ORDER BY city_id DESC)  AS subquery
         """
 
 # Execute the query
